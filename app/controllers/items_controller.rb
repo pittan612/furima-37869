@@ -1,7 +1,8 @@
 class ItemsController < ApplicationController
-  before_action :authenticate_user!, except: [:index, :show]
+  before_action :authenticate_user!, except: [:index, :show,]
+  
+  before_action :set_item, only: [:show, :edit, :update]
 
-  before_action :set_item, only: [:show]
   def index
     @items = Item.includes(:user).order('created_at DESC')    
   end
@@ -21,6 +22,24 @@ class ItemsController < ApplicationController
 
   def show
   end
+
+  def edit
+    @item = Item.find(params[:id]) 
+    #もし、現在ログインしているユーザーは商品を出品ユーザーではなかった時、トップページに遷移する
+    unless current_user == @item.user
+      redirect_to root_path
+    end
+ end
+
+  def update
+    @item.update(item_params)
+    if @item.valid?
+      redirect_to item_path(item_params)
+    else
+      render 'edit'
+    end
+  end
+
 
   private
   def item_params
