@@ -1,6 +1,6 @@
 class ItemsController < ApplicationController
   before_action :authenticate_user!, except: [:index, :show,]
-  
+  before_action :contributor_confirmation, only: [:edit, :update, :destroy]
   before_action :set_item, only: [:show, :edit, :update]
 
   def index
@@ -24,19 +24,13 @@ class ItemsController < ApplicationController
   end
 
   def edit
-    @item = Item.find(params[:id]) 
-    #もし、現在ログインしているユーザーは商品を出品ユーザーではなかった時、トップページに遷移する
-    unless current_user == @item.user
-      redirect_to root_path
-    end
- end
+  end
 
   def update
-    @item.update(item_params)
-    if @item.valid?
-      redirect_to item_path(item_params)
+    if @item.update(item_params)
+      redirect_to item_path(@item.id)
     else
-      render 'edit'
+      render :edit
     end
   end
 
@@ -48,5 +42,9 @@ class ItemsController < ApplicationController
 
   def set_item
     @item = Item.find(params[:id])
+  end
+  
+  def contributor_confirmation
+    redirect_to root_path unless current_user.id == @item.user.id
   end
 end
